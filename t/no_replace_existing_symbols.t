@@ -6,8 +6,8 @@ use Test::More tests => 6;
 
 {
   package SomeClass;
-  use Moose;
-  with 'MooseX::Emulate::Class::Accessor::Fast';
+  use Moo;
+  with 'MooX::Emulate::Class::Accessor::Fast';
 
   sub anaccessor { 'wibble' }
 

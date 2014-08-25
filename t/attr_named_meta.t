@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Class::MOP ();
 use Test::More skip_all => 'TODO'; #
-use MooseX::Adopt::Class::Accessor::Fast;
+use MooX::Adopt::Class::Accessor::Fast;
 
 {
   package TestPackage;

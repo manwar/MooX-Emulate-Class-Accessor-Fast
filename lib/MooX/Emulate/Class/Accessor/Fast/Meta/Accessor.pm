@@ -1,8 +1,8 @@
-package MooseX::Emulate::Class::Accessor::Fast::Meta::Accessor;
+package MooX::Emulate::Class::Accessor::Fast::Meta::Accessor;
 
-use Moose;
+use Moo;
 
-extends 'Moose::Meta::Method::Accessor';
+extends 'Moo::Meta::Method::Accessor';
 
 sub _generate_accessor_method {
     my $attr = (shift)->associated_attribute;
@@ -45,6 +45,6 @@ sub _generate_accessor_method_inline {
     $meta->add_method(_generate_writer_method_inline => $meta->get_method('_generate_accessor_method_inline'));
 }
 
-no Moose;
+no Moo;
 
 1;

@@ -6,7 +6,7 @@ use Test::Exception;
 use Class::MOP;
 
 #1
-require_ok("MooseX::Adopt::Class::Accessor::Fast");
+require_ok("MooX::Adopt::Class::Accessor::Fast");
 
 my $class = "Testing::Class::Accessor::Fast";
 

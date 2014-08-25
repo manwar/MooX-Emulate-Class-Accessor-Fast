@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More tests => 1;
-use MooseX::Adopt::Class::Accessor::Fast;
+use MooX::Adopt::Class::Accessor::Fast;
 
 {
   package Some::Class;
