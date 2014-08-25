@@ -1,12 +1,5 @@
 package MooX::Emulate::Class::Accessor::Fast;
-
 use Moo::Role;
-use Class::MOP ();
-use Scalar::Util ();
-
-use MooX::Emulate::Class::Accessor::Fast::Meta::Accessor ();
-
-our $VERSION = '0.00903';
 
 =head1 NAME
 
@@ -70,21 +63,21 @@ store arguments in the instance hashref.
 
 =cut
 
-my $locate_metaclass = sub {
-  my $class = Scalar::Util::blessed($_[0]) || $_[0];
-  return Class::MOP::get_metaclass_by_name($class)
-    || Moo::Meta::Class->initialize($class);
-};
+use Class::Method::Modifiers qw( install_modifier );
+use Carp qw( confess );
 
 sub BUILD { }
 
-around 'BUILD' => sub {
+around BUILD => sub {
   my $orig = shift;
   my $self = shift;
+
   my %args = %{ $_[0] };
   $self->$orig(\%args);
+
   my @extra = grep { !exists($self->{$_}) } keys %args;
   @{$self}{@extra} = @args{@extra};
+
   return $self;
 };
 
@@ -100,38 +93,13 @@ will be passed. Please see L<Class::MOP::Attribute> for more information.
 =cut
 
 sub mk_accessors {
-  my $self = shift;
-  my $meta = $locate_metaclass->($self);
-  my $class = $meta->name;
-  confess("You are trying to modify ${class}, which has been made immutable, this is ".
-    "not supported. Try subclassing ${class}, rather than monkeypatching it")
-    if $meta->is_immutable;
+  my ($class, @fields) = @_;
 
-  for my $attr_name (@_){
-    $meta->remove_attribute($attr_name)
-      if $meta->find_attribute_by_name($attr_name);
-    my $reader = $self->accessor_name_for($attr_name);
-    my $writer = $self->mutator_name_for( $attr_name);
-
-    #dont overwrite existing methods
-    if($reader eq $writer){
-      my %opts = ( $meta->has_method($reader) ? ( is => 'bare' ) : (accessor => $reader) );
-      my $attr = $meta->find_attribute_by_name($attr_name) || $meta->add_attribute($attr_name, %opts,
-        traits => ['MooX::Emulate::Class::Accessor::Fast::Meta::Role::Attribute']
-      );
-      if($attr_name eq $reader){
-        my $alias = "_${attr_name}_accessor";
-        next if $meta->has_method($alias);
-        $meta->add_method($alias => $attr->get_read_method_ref);
-      }
-    } else {
-      my @opts = ( $meta->has_method($writer) ? () : (writer => $writer) );
-      push(@opts, (reader => $reader)) unless $meta->has_method($reader);
-      my $attr = $meta->find_attribute_by_name($attr_name) || $meta->add_attribute($attr_name, @opts,
-        traits => ['MooX::Emulate::Class::Accessor::Fast::Meta::Role::Attribute']
-      );
-    }
+  foreach my $field (@fields) {
+    $class->make_accessor( $field );
   }
+
+  return;
 }
 
 =head2 mk_ro_accessors @field_names
@@ -141,25 +109,13 @@ Create read-only accessors.
 =cut
 
 sub mk_ro_accessors {
-  my $self = shift;
-  my $meta = $locate_metaclass->($self);
-  my $class = $meta->name;
-  confess("You are trying to modify ${class}, which has been made immutable, this is ".
-    "not supported. Try subclassing ${class}, rather than monkeypatching it")
-    if $meta->is_immutable;
-  for my $attr_name (@_){
-    $meta->remove_attribute($attr_name)
-      if $meta->find_attribute_by_name($attr_name);
-    my $reader = $self->accessor_name_for($attr_name);
-    my @opts = ($meta->has_method($reader) ? (is => 'bare') : (reader => $reader) );
-    my $attr = $meta->add_attribute($attr_name, @opts,
-      traits => ['MooX::Emulate::Class::Accessor::Fast::Meta::Role::Attribute']
-    ) if scalar(@opts);
-    if($reader eq $attr_name && $reader eq $self->mutator_name_for($attr_name)){
-      $meta->add_method("_${attr_name}_accessor" => $attr->get_read_method_ref)
-        unless $meta->has_method("_${attr_name}_accessor");
-    }
+  my ($class, @fields) = @_;
+
+  foreach my $field (@fields) {
+    $class->make_ro_accessor( $field );
   }
+
+  return;
 }
 
 =head2 mk_ro_accessors @field_names
@@ -168,27 +124,14 @@ Create write-only accessors.
 
 =cut
 
-#this is retarded.. but we need it for compatibility or whatever.
 sub mk_wo_accessors {
-  my $self = shift;
-  my $meta = $locate_metaclass->($self);
-  my $class = $meta->name;
-  confess("You are trying to modify ${class}, which has been made immutable, this is ".
-    "not supported. Try subclassing ${class}, rather than monkeypatching it")
-    if $meta->is_immutable;
-  for my $attr_name (@_){
-    $meta->remove_attribute($attr_name)
-      if $meta->find_attribute_by_name($attr_name);
-    my $writer = $self->mutator_name_for($attr_name);
-    my @opts = ($meta->has_method($writer) ? () : (writer => $writer) );
-    my $attr = $meta->add_attribute($attr_name, @opts,
-      traits => ['MooX::Emulate::Class::Accessor::Fast::Meta::Role::Attribute']
-    ) if scalar(@opts);
-    if($writer eq $attr_name && $writer eq $self->accessor_name_for($attr_name)){
-      $meta->add_method("_${attr_name}_accessor" => $attr->get_write_method_ref)
-        unless $meta->has_method("_${attr_name}_accessor");
-    }
+  my ($class, @fields) = @_;
+
+  foreach my $field (@fields) {
+    $class->make_wo_accessor( $field );
   }
+
+  return;
 }
 
 =head2 follow_best_practices
@@ -199,13 +142,19 @@ See original L<Class::Accessor> documentation for more information.
 =cut
 
 sub follow_best_practice {
-  my $self = shift;
-  my $meta = $locate_metaclass->($self);
+  my ($class) = @_;
 
-  $meta->remove_method('mutator_name_for');
-  $meta->remove_method('accessor_name_for');
-  $meta->add_method('mutator_name_for',  sub{ return "set_".$_[1] });
-  $meta->add_method('accessor_name_for', sub{ return "get_".$_[1] });
+  my $fresh = sub{ install_modifier($class, 'fresh', @_) };
+
+  $fresh->(
+    mutator_name_for => sub{ 'set_' . $_[1] },
+  );
+
+  $fresh->(
+    accessor_name_for => sub{ 'get_' . $_[1] },
+  );
+
+  return;
 }
 
 =head2 mutator_name_for
@@ -216,8 +165,8 @@ See original L<Class::Accessor> documentation for more information.
 
 =cut
 
-sub mutator_name_for  { return $_[1] }
-sub accessor_name_for { return $_[1] }
+sub mutator_name_for  { $_[1] }
+sub accessor_name_for { $_[1] }
 
 =head2 set
 
@@ -227,14 +176,12 @@ See original L<Class::Accessor> documentation for more information.
 
 sub set {
   my $self = shift;
-  my $k = shift;
+  my $field = shift;
   confess "Wrong number of arguments received" unless scalar @_;
-  my $meta = $locate_metaclass->($self);
 
-  confess "No such attribute  '$k'"
-    unless ( my $attr = $meta->find_attribute_by_name($k) );
-  my $writer = $attr->get_write_method;
-  $self->$writer(@_ > 1 ? [@_] : @_);
+  $self->{$field} = (@_>1) ? [@_] : @_;
+
+  return;
 }
 
 =head2 get
@@ -246,64 +193,108 @@ See original L<Class::Accessor> documentation for more information.
 sub get {
   my $self = shift;
   confess "Wrong number of arguments received" unless scalar @_;
-  my $meta = $locate_metaclass->($self);
-  my @values;
 
-  for( @_ ){
-    confess "No such attribute  '$_'"
-      unless ( my $attr = $meta->find_attribute_by_name($_) );
-    my $reader = $attr->get_read_method;
-    @_ > 1 ? push(@values, $self->$reader) : return $self->$reader;
-  }
+  my @values = (
+    map { $self->{$_} }
+    @_
+  );
 
   return @values;
 }
 
-sub make_accessor {
-  my($class, $field) = @_;
-  my $meta = $locate_metaclass->($class);
-  my $attr = $meta->find_attribute_by_name($field) || $meta->add_attribute($field,
-      traits => ['MooX::Emulate::Class::Accessor::Fast::Meta::Role::Attribute'],
-     is => 'bare',
-  );
-  my $reader = $attr->get_read_method_ref;
-  my $writer = $attr->get_write_method_ref;
-  return sub {
-    my $self = shift;
-    return $reader->($self) unless @_;
-    return $writer->($self,(@_ > 1 ? [@_] : @_));
-  }
-}
 
+sub make_accessor {
+  my ($class, $name) = @_;
+
+  my $reader = $class->accessor_name_for( $field );
+  my $writer = $class->mutator_name_for( $field );
+
+  my $alias;
+
+  if ($reader eq $writer and $reader eq $field) {
+    # Do nothing.
+  }
+  elsif ($reader ne $writer) {
+    $reader = undef if $reader eq $field;
+    $writer = undef if $writer eq $field;
+  }
+  else {
+    $alias = $reader;
+  }
+
+  $class->can('has')->(
+    $field,
+    is => 'rw',
+    $reader ? (reader=>$reader) : (),
+    $writer ? (writer=>$writer) : (),
+  );
+
+  if ($alias) {
+    install_modifier(
+      $class, 'fresh', $alias,
+      sub{ shift()->$field(@_) },
+    });
+  }
+
+  my $reader_method = $alias || $reader || $field;
+  my $writer_method = $alias || $writer || $field;
+
+  return sub{
+    my $self = shift;
+    return $self->$writer_method( @_ ) if @_;
+    return $self->$reader_method();
+  };
+}
 
 sub make_ro_accessor {
-  my($class, $field) = @_;
-  my $meta = $locate_metaclass->($class);
-  my $attr = $meta->find_attribute_by_name($field) || $meta->add_attribute($field,
-      traits => ['MooX::Emulate::Class::Accessor::Fast::Meta::Role::Attribute'],
-     is => 'bare',
+  my ($class, $field) = @_;
+
+  my $reader = $class->accessor_name_for( $field );
+  $reader = undef if $reader eq $field;
+
+  $class->can('has')->(
+    $field,
+    is => 'ro',
+    $reader ? (reader=>$reader) : (),
   );
-  return $attr->get_read_method_ref;
+
+  $reader_method = $reader || $field;
+
+  return sub{
+    my $self = shift;
+    return $self->$reader_method();
+  };
 }
 
-
 sub make_wo_accessor {
-  my($class, $field) = @_;
-  my $meta = $locate_metaclass->($class);
-  my $attr = $meta->find_attribute_by_name($field) || $meta->add_attribute($field,
-      traits => ['MooX::Emulate::Class::Accessor::Fast::Meta::Role::Attribute'],
-      is => 'bare',
+  my ($class, $field) = @_;
+
+  my $writer = $class->mutator_name_for( $field );
+  $writer = undef if $writer eq $field;
+  my $reader = "__get__$field";
+
+  $class->can('has')->(
+    $field,
+    is => 'rw',
+    reader => $reader,
+    $writer ? (writer=>$writer) : (),
   );
-  return $attr->get_write_method_ref;
+
+  $class->can('around')->(
+    $reader,
+    sub { die "Cannot call $reader" },
+  );
+
+  my $writer_method = $writer || $field;
+
+  return sub{
+    my $self = shift;
+    return $self->$writer_method( @_ );
+  };
 }
 
 1;
-
-=head2 meta
-
-See L<Moo::Meta::Class>.
-
-=cut
+__END__
 
 =head1 SEE ALSO
 
@@ -327,5 +318,3 @@ With contributions from:
 =head1 LICENSE
 
 You may distribute this code under the same terms as Perl itself.
-
-=cut
