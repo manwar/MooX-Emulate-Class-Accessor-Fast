@@ -1,5 +1,7 @@
 Revision history for Perl extension MooX::AliasedAttributes.
 
 {{$NEXT}}
+
+0.01      2014-08-26
  - First release.
 
