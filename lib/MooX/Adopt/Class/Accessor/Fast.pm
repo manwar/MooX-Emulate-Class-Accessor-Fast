@@ -6,6 +6,7 @@ package #don't index
     Class::Accessor::Fast;
 
 use Moo;
+use strictures 1;
 with 'MooX::Emulate::Class::Accessor::Fast';
 
 1;

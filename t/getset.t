@@ -1,6 +1,7 @@
-#!perl
-use strict;
-use Test::More tests => 9;
+#!/usr/bin/env perl
+use strictures 1;
+
+use Test::More;
 
 require_ok("MooX::Adopt::Class::Accessor::Fast");
 {
@@ -18,9 +19,9 @@ require_ok("MooX::Adopt::Class::Accessor::Fast");
   my $set_ref = Bar->make_wo_accessor('write');
   my $getset_ref = Bar->make_accessor('read_write');
 
-  ok(Bar->meta->has_attribute("read"),"has read");
-  ok(Bar->meta->has_attribute("write"),"has write");
-  ok(Bar->meta->has_attribute("read_write"),"has read_write");
+  ok(Bar->meta->find_attribute_by_name("read"),"has read");
+  ok(Bar->meta->find_attribute_by_name("write"),"has write");
+  ok(Bar->meta->find_attribute_by_name("read_write"),"has read_write");
 
   my $obj = Bar->new({read => 1, write => 2, read_write => 3});
   is($get_ref->($obj), 1, "read get works");
@@ -28,3 +29,5 @@ require_ok("MooX::Adopt::Class::Accessor::Fast");
   $getset_ref->($obj,2);
   is($getset_ref->($obj), 2, "read_write set works");
 }
+
+done_testing;

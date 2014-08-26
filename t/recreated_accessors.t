@@ -1,11 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
+use strictures 1;
 
-use strict;
-use warnings;
-use Test::More tests => 5;
+use Test::More;
 use Test::Exception;
 
-# 1
 use_ok('MooX::Emulate::Class::Accessor::Fast');
 {
   package My::Test::Package;
@@ -20,14 +18,13 @@ use_ok('MooX::Emulate::Class::Accessor::Fast');
 
 my $i = My::Test::Package->new(bar => 'bar');
 
-# 2
 lives_ok {
   $i->foo('foo');
   $i->baz('baz');
 
-  # 3-5
   is($i->foo, 'foo');
   is($i->bar, 'bar');
   is($i->{baz}, 'baz');
 } 'No exception';
 
+done_testing;

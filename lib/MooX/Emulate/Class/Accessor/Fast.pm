@@ -1,5 +1,6 @@
 package MooX::Emulate::Class::Accessor::Fast;
 use Moo::Role;
+use strictures 1;
 
 =head1 NAME
 
@@ -63,8 +64,9 @@ store arguments in the instance hashref.
 
 =cut
 
+use Package::Stash;
 use Class::Method::Modifiers qw( install_modifier );
-use Carp qw( confess );
+use Carp qw( croak );
 
 sub BUILD { }
 
@@ -134,7 +136,7 @@ sub mk_wo_accessors {
   return;
 }
 
-=head2 follow_best_practices
+=head2 follow_best_practice
 
 Preface readers with 'get_' and writers with 'set_'.
 See original L<Class::Accessor> documentation for more information.
@@ -144,14 +146,16 @@ See original L<Class::Accessor> documentation for more information.
 sub follow_best_practice {
   my ($class) = @_;
 
-  my $fresh = sub{ install_modifier($class, 'fresh', @_) };
+  my $stash = Package::Stash->new( $class );
 
-  $fresh->(
-    mutator_name_for => sub{ 'set_' . $_[1] },
+  $stash->add_symbol(
+    '&mutator_name_for',
+    sub{ 'set_' . $_[1] },
   );
 
-  $fresh->(
-    accessor_name_for => sub{ 'get_' . $_[1] },
+  $stash->add_symbol(
+    '&accessor_name_for',
+    sub{ 'get_' . $_[1] },
   );
 
   return;
@@ -177,11 +181,9 @@ See original L<Class::Accessor> documentation for more information.
 sub set {
   my $self = shift;
   my $field = shift;
-  confess "Wrong number of arguments received" unless scalar @_;
 
-  $self->{$field} = (@_>1) ? [@_] : @_;
-
-  return;
+  my $method = "_set_moocaf_$field";
+  return $self->$method( @_ );
 }
 
 =head2 get
@@ -192,105 +194,100 @@ See original L<Class::Accessor> documentation for more information.
 
 sub get {
   my $self = shift;
-  confess "Wrong number of arguments received" unless scalar @_;
 
-  my @values = (
-    map { $self->{$_} }
-    @_
-  );
+  my @values;
+  foreach my $field (@_) {
+    my $method = "_get_moocaf_$field";
+    push @values, $self->$method();
+  }
 
+  return $values[0] if @values==1;
   return @values;
 }
 
+sub _make_moocaf_accessor {
+  my ($class, $field, $type) = @_;
 
-sub make_accessor {
-  my ($class, $name) = @_;
+  if (!$class->can('has')) {
+    require Moo;
+    my $ok = eval "package $class; Moo->import(); 1";
+    croak "Failed to import Moo into $class" if !$ok;
+  }
+
+  my $private_reader = "_get_moocaf_$field";
+  my $private_writer = "_set_moocaf_$field";
+
+  if (!$class->can($private_reader)) {
+    $class->can('has')->(
+      $field,
+      is     => 'rw',
+      reader => $private_reader,
+      writer => $private_writer,
+    );
+
+    install_modifier(
+      $class, 'around', $private_writer,
+      sub{
+        my $orig = shift;
+        my $self = shift;
+        return $self->$orig() if !@_;
+        my $value = (@_>1) ? [@_] : $_[0];
+        $self->$orig( $value );
+        return $self;
+      },
+    );
+  }
 
   my $reader = $class->accessor_name_for( $field );
   my $writer = $class->mutator_name_for( $field );
 
-  my $alias;
+  $reader = undef if $type eq 'wo';
+  $writer = undef if $type eq 'ro';
 
-  if ($reader eq $writer and $reader eq $field) {
-    # Do nothing.
-  }
-  elsif ($reader ne $writer) {
-    $reader = undef if $reader eq $field;
-    $writer = undef if $writer eq $field;
+  my $stash = Package::Stash->new( $class );
+
+  if (($reader and $writer) and ($reader eq $writer)) {
+    $stash->add_symbol(
+      '&' . $reader,
+      sub{
+        my $self = shift;
+        return $self->$private_reader() if !@_;
+        return $self->$private_writer( @_ );
+      },
+    ) if !$stash->has_symbol('&' . $reader);
   }
   else {
-    $alias = $reader;
+    $stash->add_symbol(
+      '&' . $reader,
+      sub{ shift()->$private_reader( @_ ) },
+    ) if $reader and !$stash->has_symbol('&' . $reader);
+
+    $stash->add_symbol(
+      '&' . $writer,
+      sub{ shift()->$private_writer( @_ ) },
+    ) if $writer and !$stash->has_symbol('&' . $writer);
   }
-
-  $class->can('has')->(
-    $field,
-    is => 'rw',
-    $reader ? (reader=>$reader) : (),
-    $writer ? (writer=>$writer) : (),
-  );
-
-  if ($alias) {
-    install_modifier(
-      $class, 'fresh', $alias,
-      sub{ shift()->$field(@_) },
-    });
-  }
-
-  my $reader_method = $alias || $reader || $field;
-  my $writer_method = $alias || $writer || $field;
 
   return sub{
     my $self = shift;
-    return $self->$writer_method( @_ ) if @_;
-    return $self->$reader_method();
+    return $self->$private_reader( @_ ) unless @_ and $type ne 'wo';
+    return $self->$private_writer( @_ );
   };
+}
+
+sub make_accessor {
+  my ($class, $field) = @_;
+  return $class->_make_moocaf_accessor( $field, 'rw' );
 }
 
 sub make_ro_accessor {
   my ($class, $field) = @_;
-
-  my $reader = $class->accessor_name_for( $field );
-  $reader = undef if $reader eq $field;
-
-  $class->can('has')->(
-    $field,
-    is => 'ro',
-    $reader ? (reader=>$reader) : (),
-  );
-
-  $reader_method = $reader || $field;
-
-  return sub{
-    my $self = shift;
-    return $self->$reader_method();
-  };
+  return $class->_make_moocaf_accessor( $field, 'ro' );
 }
 
 sub make_wo_accessor {
   my ($class, $field) = @_;
-
-  my $writer = $class->mutator_name_for( $field );
-  $writer = undef if $writer eq $field;
-  my $reader = "__get__$field";
-
-  $class->can('has')->(
-    $field,
-    is => 'rw',
-    reader => $reader,
-    $writer ? (writer=>$writer) : (),
-  );
-
-  $class->can('around')->(
-    $reader,
-    sub { die "Cannot call $reader" },
-  );
-
-  my $writer_method = $writer || $field;
-
-  return sub{
-    my $self = shift;
-    return $self->$writer_method( @_ );
-  };
+  return $class->_make_moocaf_accessor( $field, 'wo' );
 }
 
 1;
