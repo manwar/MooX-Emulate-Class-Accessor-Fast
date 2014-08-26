@@ -28,25 +28,21 @@ This module attempts to hijack L<Class::Accessor::Fast> in %INC and replace it
 with L<MooX::Emulate::Class::Accessor::Fast>. Make sure it is loaded before the
 classes you have that use <Class::Accessor::Fast>. It is meant as a tool to help
 you migrate your project from L<Class::Accessor::Fast>, to
- L<MooX::Emulate::Class::Accessor::Fast> and ultimately, to L<Moo>.
+L<MooX::Emulate::Class::Accessor::Fast> and ultimately, to L<Moo>.
 
 =head1 SEE ALSO
 
-L<Moo>, L<Class::Accessor::Fast>, L<MooX::Emulate::Class::Accessor::Fast>
+L<Moo>, L<Class::Accessor>, L<Class::Accessor::Fast>,
+L<MooseX::Emulate::Class::Accessor::Fast>
 
-=head1 AUTHORS
+=head1 AUTHOR
 
-=over 4
+Aran Clary Deltac <bluefeet@gmail.com>
 
-=item Matt S Trout
-
-=item Guillermo Roditi (groditi) <groditi@cpan.org>
-
-=back
+Original code, tests, and documentation taken from
+L<MooseX::Emulate::Class::Accessor::Fast>.  Thanks!
 
 =head1 LICENSE
 
-You may distribute this code under the same terms as Perl itself.
-
-=cut
-
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
