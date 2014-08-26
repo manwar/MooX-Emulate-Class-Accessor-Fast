@@ -1,7 +1,6 @@
 {
     package My::Class;
     use Moo;
-    use namespace::clean -except => 'meta';
 
     with 'MooX::Emulate::Class::Accessor::Fast';
 
@@ -9,8 +8,6 @@
         my ($self, $args) = @_;
         return $self;
     }
-
-    __PACKAGE__->meta->make_immutable;
 }
 
 use Test::More tests => 1;
