@@ -19,9 +19,15 @@ require_ok("MooX::Adopt::Class::Accessor::Fast");
   my $set_ref = Bar->make_wo_accessor('write');
   my $getset_ref = Bar->make_accessor('read_write');
 
-  ok(Bar->meta->find_attribute_by_name("read"),"has read");
-  ok(Bar->meta->find_attribute_by_name("write"),"has write");
-  ok(Bar->meta->find_attribute_by_name("read_write"),"has read_write");
+  SKIP: {
+    my $moose_loaded = eval('require Moose; 1');
+    skip( 'this test only works if Moose is installed', 3 )
+      unless $moose_loaded;
+
+    ok(Bar->meta->find_attribute_by_name("read"),"has read");
+    ok(Bar->meta->find_attribute_by_name("write"),"has write");
+    ok(Bar->meta->find_attribute_by_name("read_write"),"has read_write");
+  };
 
   my $obj = Bar->new({read => 1, write => 2, read_write => 3});
   is($get_ref->($obj), 1, "read get works");

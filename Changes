@@ -1,6 +1,7 @@
-Revision history for Perl extension MooX::AliasedAttributes.
+Revision history for Perl extension MooX::Emulate::Class::Accessor::Fast.
 
 {{$NEXT}}
+ - Fix tests when Moose is not installed.
 
 0.01      2014-08-26
  - First release.

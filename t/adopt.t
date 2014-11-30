@@ -9,8 +9,15 @@ use_ok('TestAdoptCAF');
 
 #3-6
 ok(TestAdoptCAF->can('meta'), 'Adopt seems to work');
-ok(TestAdoptCAF->meta->find_attribute_by_name($_), "attribute $_ created")
-  for qw(foo bar baz);
+
+SKIP: {
+  my $moose_loaded = eval('require Moose; 1');
+  skip( 'this test only works if Moose is installed', 3 )
+    unless $moose_loaded;
+
+  ok(TestAdoptCAF->meta->find_attribute_by_name($_), "attribute $_ created")
+    for qw(foo bar baz);
+}
 
 {
   my $ok = eval {
