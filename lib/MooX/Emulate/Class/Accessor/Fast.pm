@@ -209,9 +209,9 @@ sub get {
 sub _make_moocaf_accessor {
   my ($class, $field, $type) = @_;
 
-  if (!$class->can('has')) {
+  if (! do { no strict 'refs'; defined &{"${class}::has"} } ) {
     require Moo;
-    my $ok = eval "package $class; Moo->import(); 1";
+    my $ok = eval "package $class; use Moo; 1";
     croak "Failed to import Moo into $class" if !$ok;
   }
 

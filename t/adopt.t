@@ -1,7 +1,7 @@
 #!perl
 use strict;
 use lib 't/lib';
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 #1,2
 require_ok("MooX::Adopt::Class::Accessor::Fast");
@@ -9,6 +9,9 @@ use_ok('TestAdoptCAF');
 
 #3-6
 ok(TestAdoptCAF->can('meta'), 'Adopt seems to work');
+
+ok(!Class::Accessor::Fast->can('_get_moocaf_foo'),
+  'methods not created on C::A::F');
 
 SKIP: {
   my $moose_loaded = eval('require Moose; 1');
