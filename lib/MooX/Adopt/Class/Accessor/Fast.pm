@@ -1,5 +1,7 @@
 package MooX::Adopt::Class::Accessor::Fast;
 
+$MooX::Adopt::Class::Accessor::Fast::VERSION = '0.03';
+
 $INC{'Class/Accessor/Fast.pm'} = __FILE__;
 
 package #don't index
