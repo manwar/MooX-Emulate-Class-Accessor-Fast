@@ -44,15 +44,14 @@
          "requires" : {
             "Carp" : "0",
             "Class::Method::Modifiers" : "2.05",
-            "Moo" : "1.004005",
+            "Moo" : "2.000000",
             "Package::Stash" : "0.26",
-            "strictures" : "1.004004"
+            "strictures" : "2.000000"
          }
       },
       "test" : {
          "requires" : {
-            "Test::Exception" : "0",
-            "Test::Simple" : "0.94"
+            "Test2::V0" : "0.000094"
          }
       }
    },

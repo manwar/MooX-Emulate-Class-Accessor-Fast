@@ -52,7 +52,7 @@ use Class::Method::Modifiers qw( install_modifier );
 use Carp qw( croak );
 
 use Moo::Role;
-use strictures 1;
+use strictures 2;
 
 sub BUILD { }
 

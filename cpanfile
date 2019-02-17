@@ -1,11 +1,11 @@
 
-requires 'Moo' => 1.004005;
-requires 'strictures' => 1.004004;
+requires 'Moo' => '2.000000';
+requires 'strictures' => '2.000000';
 requires 'Class::Method::Modifiers' => 2.05;
 requires 'Package::Stash' => 0.26;
-requires 'Carp' => 0;
+
+requires 'Carp';
 
 on test => sub {
-    requires 'Test::Simple' => 0.94;
-    requires 'Test::Exception'  => 0;
+    requires 'Test2::V0' => '0.000094';
 };
