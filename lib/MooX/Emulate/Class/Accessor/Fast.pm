@@ -1,6 +1,6 @@
 package MooX::Emulate::Class::Accessor::Fast;
 
-$MooX::Emulate::Class::Accessor::Fast::VERSION = '0.03';
+$MooX::Emulate::Class::Accessor::Fast::VERSION = '0.04';
 
 =head1 NAME
 
