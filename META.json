@@ -46,6 +46,7 @@
             "Class::Method::Modifiers" : "2.05",
             "Moo" : "2.000000",
             "Package::Stash" : "0.26",
+            "perl" : "5.008001",
             "strictures" : "2.000000"
          }
       },
