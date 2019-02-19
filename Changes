@@ -2,6 +2,9 @@ Revision history for Perl extension MooX-Emulate-Class-Accessor-Fast.
 
 {{$NEXT}}
 
+ - Require perl 5.8 per Manilla.
+ - Simplify VERSION declarations.
+
 0.04 2019-02-18T06:13:22Z
 
  - Migrate all the tests from Test::More to Test2::V0.
