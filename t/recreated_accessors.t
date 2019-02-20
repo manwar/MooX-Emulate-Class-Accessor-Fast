@@ -1,10 +1,10 @@
 #!/usr/bin/env perl
-use strict;
-use warnings;
-use Test2::V0;
+use strictures 1;
 
-use MooX::Emulate::Class::Accessor::Fast;
+use Test::More;
+use Test::Exception;
 
+use_ok('MooX::Emulate::Class::Accessor::Fast');
 {
   package My::Test::Package;
   use Moo;
@@ -18,11 +18,13 @@ use MooX::Emulate::Class::Accessor::Fast;
 
 my $i = My::Test::Package->new(bar => 'bar');
 
-$i->foo('foo');
-$i->baz('baz');
+lives_ok {
+  $i->foo('foo');
+  $i->baz('baz');
 
-is($i->foo, 'foo');
-is($i->bar, 'bar');
-is($i->{baz}, 'baz');
+  is($i->foo, 'foo');
+  is($i->bar, 'bar');
+  is($i->{baz}, 'baz');
+} 'No exception';
 
 done_testing;

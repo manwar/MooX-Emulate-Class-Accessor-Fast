@@ -7,5 +7,6 @@ requires 'Package::Stash' => 0.26;
 requires 'Carp';
 
 on test => sub {
-    requires 'Test2::V0' => '0.000094';
+    requires 'Test::Simple' => 0.94;
+    requires 'Test::Exception';
 };

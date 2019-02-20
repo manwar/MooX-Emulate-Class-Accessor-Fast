@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
-use strict;
-use warnings;
-use Test2::V0;
+use strictures 1;
+
+use Test::More;
 
 {
   package Vanilla;

@@ -1,10 +1,9 @@
 #!/usr/bin/env perl
-use strict;
-use warnings;
-use Test2::V0;
+use strictures 1;
 
-require MooX::Adopt::Class::Accessor::Fast;
+use Test::More;
 
+require_ok("MooX::Adopt::Class::Accessor::Fast");
 {
   @Foo::ISA = qw(Class::Accessor::Fast);
   Foo->mk_accessors(qw( foo ));
