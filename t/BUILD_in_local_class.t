@@ -1,6 +1,9 @@
+use strict;
+use warnings;
 {
     package My::Class;
     use Moo;
+    use namespace::clean;
 
     with 'MooX::Emulate::Class::Accessor::Fast';
 
