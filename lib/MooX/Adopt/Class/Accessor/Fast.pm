@@ -1,5 +1,5 @@
 package MooX::Adopt::Class::Accessor::Fast;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 $INC{'Class/Accessor/Fast.pm'} = __FILE__;
 

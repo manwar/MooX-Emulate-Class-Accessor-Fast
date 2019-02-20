@@ -69,7 +69,7 @@
          "web" : "https://github.com/bluefeet/MooX-Emulate-Class-Accessor-Fast"
       }
    },
-   "version" : "0.04",
+   "version" : "0.05",
    "x_contributors" : [
       "Aran Deltac <aran@ziprecruiter.com>",
       "Graham Knop <haarg@haarg.org>"
