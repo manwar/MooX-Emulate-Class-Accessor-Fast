@@ -10,7 +10,7 @@
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "MooX-Emulate-Class-Accessor-Fast",
    "no_index" : {
@@ -46,8 +46,8 @@
             "Class::Method::Modifiers" : "2.05",
             "Moo" : "2.000000",
             "Package::Stash" : "0.26",
-            "perl" : "5.008001",
-            "strictures" : "2.000000"
+            "namespace::clean" : "0.24",
+            "perl" : "5.008001"
          }
       },
       "test" : {
@@ -73,6 +73,6 @@
       "Aran Deltac <aran@ziprecruiter.com>",
       "Graham Knop <haarg@haarg.org>"
    ],
-   "x_serialization_backend" : "JSON::PP version 2.27300",
+   "x_serialization_backend" : "JSON::PP version 2.97001",
    "x_static_install" : 1
 }

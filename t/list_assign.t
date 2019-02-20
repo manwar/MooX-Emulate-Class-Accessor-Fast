@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
-use strictures 2;
+use strict;
+use warnings;
 use Test2::V0;
 
 use MooX::Adopt::Class::Accessor::Fast;
 
 {
   package Some::Class;
-  use strictures 2;
   use base qw/Class::Accessor::Fast/;
 
   __PACKAGE__->mk_accessors(qw/ foo /);

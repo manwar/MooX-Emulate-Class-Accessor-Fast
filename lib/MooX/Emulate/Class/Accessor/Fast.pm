@@ -1,5 +1,4 @@
 package MooX::Emulate::Class::Accessor::Fast;
-
 our $VERSION = '0.04';
 
 =head1 NAME
@@ -52,7 +51,6 @@ use Class::Method::Modifiers qw( install_modifier );
 use Carp qw( croak );
 
 use Moo::Role;
-use strictures 2;
 
 sub BUILD { }
 

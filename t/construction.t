@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
-use strictures 2;
+use strict;
+use warnings;
 use Test2::V0;
 
 require MooX::Emulate::Class::Accessor::Fast;
